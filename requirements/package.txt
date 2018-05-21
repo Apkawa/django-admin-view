@@ -1,0 +1,7 @@
+six
+
+django-modeltranslation
+easy-thumbnails
+
+django-object-actions
+

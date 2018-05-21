@@ -1,0 +1,57 @@
+{% extends "admin/custom_view/custom_view.html" %}
+{% load i18n admin_urls admin_static admin_modify %}
+
+{% block extrahead %}
+    {{ block.super }}
+    {% include "admin/includes/_readonly_head.html" %}
+{% endblock %}
+
+{% block content %}
+    <div id="content-main">
+        {% csrf_token %}
+        {% block form_top %}{% endblock %}
+
+        {% if is_popup %}
+            <input type="hidden" name="{{ is_popup_var }}" value="1"/>
+        {% endif %}
+        {% if to_field %}
+            <input type="hidden" name="{{ to_field_var }}" value="{{ to_field }}"/>
+        {% endif %}
+        <div class="col-sm-9 form-fields" id="content-form-wrap">
+            <div id="content-form">
+                {% block content_form %}
+                {% endblock %}
+
+            </div>
+        </div>
+        <div class="col-sm-3 form-buttons">
+            <div data-spy="affix" data-offset-top="125">
+
+                {% block object-tools %}
+                    {% if change %}
+                        {% include "django_object_actions/includes/change.html" %}
+
+                        {% if not is_popup %}
+                            <ul class="object-tools btn-group btn-group-justified">
+                                {% block object-tools-items %}
+                                    {% if has_absolute_url %}
+                                        <li class="btn-group">
+                                            <a href="{{ absolute_url }}" target="_blank"
+                                               class="btn btn-default viewsitelink"
+                                               title="{% trans "View on site" %}">
+                                                <span class="glyphicon glyphicon-new-window"></span>
+                                                <span class="text">{% trans "View on site" %}</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                {% endblock %}
+                            </ul>
+                        {% endif %}
+                    {% endif %}
+                {% endblock %}
+
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

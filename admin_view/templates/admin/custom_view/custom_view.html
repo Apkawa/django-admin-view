@@ -1,0 +1,22 @@
+{% extends "admin/custom_view/base_custom_view.html" %}
+
+
+{% block js %}
+    {% block custom_js %}
+
+    {% endblock %}
+{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    {% block custom_style %}
+
+    {% endblock %}
+{% endblock %}
+
+{% block content %}
+    <div id="content-body">
+
+    </div>
+{% endblock %}

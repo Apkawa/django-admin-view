@@ -1,0 +1,25 @@
+{% extends "admin/base_site.html" %}
+{% load admin_helpers %}
+{% load i18n admin_static admin_modify admin_urls %}
+{% load admin_helpers %}
+
+{% block extrahead %}{{ block.super }}
+    {% url 'admin:jsi18n' as jsi18nurl %}
+    <script type="text/javascript" src="{{ jsi18nurl|default:"../../../jsi18n/" }}"></script>
+
+    {{ media }}
+
+{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}"/>
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} change-form{% endblock %}
+
+{% block content %}
+{% endblock %}
+
+{# Empty centered sidebar as now we use sidebar in content block#}
+{% block sidebar_content %}{% endblock %}
