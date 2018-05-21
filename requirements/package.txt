@@ -4,4 +4,6 @@ django-modeltranslation
 easy-thumbnails
 
 django-object-actions
+django-filter
+tablib
 

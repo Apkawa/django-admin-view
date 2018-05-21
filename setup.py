@@ -50,7 +50,7 @@ if sys.argv[1] == 'bumpversion':
     os.system("git push --tags")
     sys.exit()
 
-__doc__ = """Help create custom admin view"""
+__doc__ = """Helps create custom admin view"""
 
 project_name = 'django-admin-view'
 app_name = 'admin_view'

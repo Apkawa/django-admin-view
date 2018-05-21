@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from admin_view.admin import CustomAdmin
-from admin_view.views import AdminTemplateView
+from admin_view.views.base import AdminTemplateView
 
 
 class ExampleView(AdminTemplateView):
