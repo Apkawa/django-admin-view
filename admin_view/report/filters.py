@@ -7,6 +7,7 @@ import django_filters as filters
 
 from django import forms
 from django_filters.widgets import RangeWidget
+from django.contrib.admin.widgets import AdminDateWidget
 
 
 class ReportForm(forms.Form):
@@ -27,7 +28,8 @@ class DateRangeWidget(RangeWidget):
     def __init__(self, attrs=None):
         attrs = attrs or {}
         attrs.update({'data-datetimepicker': 'date'})
-        widgets = (forms.DateInput(attrs=attrs.copy()), forms.DateInput(attrs=attrs.copy()))
+        date_widget_class = attrs.get('date_widget', AdminDateWidget)
+        widgets = (date_widget_class(attrs=attrs.copy()), date_widget_class(attrs=attrs.copy()))
         forms.MultiWidget.__init__(self, widgets, attrs)
 
 
@@ -40,7 +42,7 @@ class BaseReportFilter(filters.FilterSet):
         super().__init__(*args, **kwargs)
         self.filters = OrderedDict(self.get_filters())
 
-        for name, f in self.get_filters():
+        for name, f in self.get_filters().items():
             bound_field = self.form[name]
             field = bound_field.field
             field.required = False
@@ -60,19 +62,18 @@ class BaseReportFilter(filters.FilterSet):
                                                                 widget=forms.CheckboxInput)
             self.form.fields['on_' + name].widget.attrs['to_field'] = name
 
-    @classmethod
-    def get_fields(cls):
-        fields = super().get_fields()
-        # for name, field in cls.get_filters():
-        #     if not name.startswith('on_'):
-        #         fields.append([cls.form[name], cls.form['on_' + name]])
+    def get_form_fields(self):
+        fields = []
+        for name in self._meta.fields:
+            if not name.startswith('on_'):
+                fields.append([self.form[name], self.form['on_' + name]])
         return fields
 
     @classmethod
     def get_filters(cls):
         fields = cls._meta.fields
         filters = super().get_filters()
-        return ((name, f) for name, f in filters.items() if name in fields)
+        return dict([(name, f) for name, f in filters.items() if name in fields])
 
     def get_enabled_fields(self):
         fields = [(e, self.filters[e].label) for e in getattr(self.form, '_enabled_fields', [])]

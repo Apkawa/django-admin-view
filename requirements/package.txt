@@ -5,5 +5,7 @@ easy-thumbnails
 
 django-object-actions
 django-filter
-tablib
+tablib==0.12.1
+openpyxl<2.5
 
+django-pure-pagination

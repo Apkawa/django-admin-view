@@ -1,0 +1,88 @@
+{% extends "admin/custom_view/custom_view.html" %}
+
+{% load staticfiles %}
+{% block js %}
+  <script>
+    (function ($) {
+      function to_input ($el) {
+        const $to_field = $(`[name^='${$el.attr('to_field')}']`)
+        if ($el[0].checked) {
+          $to_field.removeAttr('disabled')
+        } else {
+          $to_field.attr('disabled', 'disabled')
+        }
+      }
+
+      $(() => {
+        $('input[name^=\'on_\']').on('change', function () {
+          to_input($(this))
+        }).each(function () {
+          to_input($(this))
+        })
+      })
+    })(django.jQuery)
+  </script>
+{% endblock %}
+{% block custom_style %}
+  <style>
+    @media print {
+      form {
+        display: none;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <form action="." method="get">
+    {{ form.form.media }}
+    <div class="content-main form-horizontal">
+      {% for field, radio_field in form.get_form_fields %}
+        <div class="row">
+          <div class="col-md-4">
+            {{ radio_field }}
+            {{ radio_field.label_tag }}
+          </div>
+          <div class="col-md-6 form-group {{ field.wrap_class|default:"" }}">
+            {{ field }}
+          </div>
+        </div>
+      {% endfor %}
+      <div class="row">
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-default">Показать отчет</button>
+          <button type="submit" class="btn btn-default" name="_export" value="xlsx">Скачать отчет в XLSX
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  {% include "admin/custom_view/includes/_pagination.html" %}
+  <table class="table table-responsive">
+    <thead>
+    <tr>
+      {% for field, label in form.get_enabled_fields %}
+        <th>{{ label }}</th>
+      {% endfor %}
+    </tr>
+    </thead>
+    <tbody>
+    {% for row in export_data.dict %}
+      <tr class="state-{{ row.order.state }}">
+        {% for key, value in row.items %}
+          {% if not forloop.last %}
+            <td>
+              <!-- {{ key }} -->
+              {{ value }}
+            </td>
+          {% endif %}
+        {% endfor %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% include "admin/custom_view/includes/_pagination.html" %}
+
+
+{% endblock %}

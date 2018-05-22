@@ -10,7 +10,7 @@ from collections import OrderedDict
 
 import tablib
 from django.http import HttpResponse
-from django.utils.encoding import smart_str
+from django.utils.encoding import smart_str, force_bytes
 
 from django.views.generic.list import MultipleObjectMixin
 
@@ -20,6 +20,7 @@ from admin_view.views.base import AdminTemplateView
 
 class ReportFormViewMixin(MultipleObjectMixin):
     filter_class = None
+    filename = 'Report.xlsx'
 
     def get_filter_class(self):
         return self.filter_class
@@ -50,7 +51,7 @@ class ReportFormViewMixin(MultipleObjectMixin):
     def get_context_data(self, **kwargs):
         self.object_list = self.model.objects.none()
 
-        context = AdminTemplateView.get_context_data(self, **kwargs)
+        context = super().get_context_data(**kwargs)
 
         filter_form = self.get_filter()
         filter_form.form.is_valid()
@@ -101,10 +102,16 @@ class ReportFormViewMixin(MultipleObjectMixin):
         context = self.get_context_data(**kwargs)
         export_format = context['export_format']
         export_dataset = context['export_data']
-        del export_dataset[-1]
+        del export_dataset[export_dataset.headers[-1]]
 
         with open(output_file, 'wb') as f:
             f.write(getattr(export_dataset, export_format))
+
+        return
+
+    def get_filename(self):
+
+        return self.filename
 
     def get(self, request, *args, **kwargs):
         export_format = self.get_export_format()
@@ -118,12 +125,13 @@ class ReportFormViewMixin(MultipleObjectMixin):
                             )
                 p.start()
                 p.join()
-                filename = smart_str('Отчет по заказам.%s' % export_format)
+                filename = self.get_filename()
                 content_type = mimetypes.guess_type(filename)[0]
                 response = HttpResponse(
                     open(output_file, 'rb').read(),
                     content_type=content_type)
-                response['Content-Disposition'] = b'attachment; filename="%s"' % filename
+                response['Content-Disposition'] = b'attachment; filename="%s"' % force_bytes(
+                    filename)
                 return response
             finally:
                 shutil.rmtree(output_file, ignore_errors=True)
@@ -132,5 +140,5 @@ class ReportFormViewMixin(MultipleObjectMixin):
         return self.render_to_response(context)
 
 
-class ReportFormView(AdminTemplateView, ReportFormViewMixin):
-    pass
+class ReportFormView(ReportFormViewMixin, AdminTemplateView):
+    template_name = "admin/custom_view/report.html"

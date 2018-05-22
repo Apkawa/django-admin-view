@@ -4,16 +4,19 @@
 {% load admin_helpers %}
 
 {% block extrahead %}{{ block.super }}
-    {% url 'admin:jsi18n' as jsi18nurl %}
-    <script type="text/javascript" src="{{ jsi18nurl|default:"../../../jsi18n/" }}"></script>
+  {% url 'admin:jsi18n' as jsi18nurl %}
+  <script type="text/javascript" src="{{ jsi18nurl|default:"../../../jsi18n/" }}"></script>
 
-    {{ media }}
+  {{ media }}
+  {% block js %}
+
+  {% endblock %}
 
 {% endblock %}
 
 {% block extrastyle %}
-    {{ block.super }}
-    <link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}"/>
+  {{ block.super }}
+  <link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}"/>
 {% endblock %}
 
 {% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} change-form{% endblock %}

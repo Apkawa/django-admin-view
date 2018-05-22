@@ -26,7 +26,6 @@ from admin_view.mixins.admin import (
 from .changelist import PerPageChangeList
 from .views.base import AdminTemplateView
 
-
 try:
     from pymorphy2 import MorphAnalyzer
 except ImportError:
@@ -53,6 +52,8 @@ class CustomAdmin(six.with_metaclass(
     template_name = 'admin/custom_view/custom_view.html'
 
     change_view = changelist_view = add_view = AdminTemplateView
+
+    actions = None
 
     def __init__(self, model, admin_site):
         self.model = model
@@ -148,26 +149,29 @@ class CustomAdmin(six.with_metaclass(
             verbose_name=self.verbose_name,
             opts=self.model._meta,
             title=self.get_title(None),
-            media=self.media
+            media=self.media + self.get_media()
 
         )
 
-    @property
-    def media(self):
+    def get_media(self):
         extra = '' if settings.DEBUG else '.min'
         js = [
-            'core.js?r=%s' % settings.STATIC_REV,
-            'jquery%s.js%s' % (extra, settings.STATIC_REV),
-            'jquery.init.js?r=%s' % settings.STATIC_REV,
-            'admin/RelatedObjectLookups.js?r=%s' % settings.STATIC_REV,
+            'core.js',
+            'vendor/jquery/jquery%s.js' % extra,
+            'jquery.init.js',
+            'admin/RelatedObjectLookups.js',
+            'actions%s.js' % extra,
+            'urlify.js',
+            'prepopulate%s.js' % extra,
+            'vendor/xregexp/xregexp%s.js' % extra,
         ]
         if self.actions is not None:
             js.append('actions%s.js%s' % (extra, settings.STATIC_REV))
-        if self.prepopulated_fields:
-            js.extend([
-                'urlify.js?r=%s' % settings.STATIC_REV,
-                'prepopulate%s.js%s' % (extra, settings.STATIC_REV)
-            ])
+        # if self.prepopulated_fields:
+        #     js.extend([
+        #         'urlify.js?r=%s' % settings.STATIC_REV,
+        #         'prepopulate%s.js%s' % (extra, settings.STATIC_REV)
+        #     ])
         return forms.Media(js=[static('admin/js/%s' % url) for url in js])
 
 
