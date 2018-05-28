@@ -42,6 +42,7 @@ class BaseReportFilter(filters.FilterSet):
         super().__init__(*args, **kwargs)
         self.filters = OrderedDict(self.get_filters())
 
+        initial_enabled = set(self.get_initial_enabled_fields())
         for name, f in self.get_filters().items():
             bound_field = self.form[name]
             field = bound_field.field
@@ -59,7 +60,9 @@ class BaseReportFilter(filters.FilterSet):
                 })
 
             self.form.fields['on_' + name] = forms.BooleanField(required=False, label=f.label,
-                                                                widget=forms.CheckboxInput)
+                                                                widget=forms.CheckboxInput,
+                                                                initial=name in initial_enabled,
+                                                                )
             self.form.fields['on_' + name].widget.attrs['to_field'] = name
 
     def get_form_fields(self):
@@ -75,6 +78,11 @@ class BaseReportFilter(filters.FilterSet):
         filters = super().get_filters()
         return dict([(name, f) for name, f in filters.items() if name in fields])
 
+    def get_initial_enabled_fields(self):
+        return []
+
     def get_enabled_fields(self):
-        fields = [(e, self.filters[e].label) for e in getattr(self.form, '_enabled_fields', [])]
+        form_fields = getattr(self.form, '_enabled_fields',
+                              None) or self.get_initial_enabled_fields()
+        fields = [(e, self.filters[e].label) for e in form_fields]
         return sorted(fields, key=lambda f: self._meta.fields.index(f[0]))

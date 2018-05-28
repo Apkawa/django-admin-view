@@ -26,10 +26,11 @@ class ReportFormViewMixin(MultipleObjectMixin):
         return self.filter_class
 
     def get_filter(self, queryset=None):
-        return self.get_filter_class()(self.request.GET,
-                                       queryset=queryset or self.get_queryset(),
-                                       view=self
-                                       )
+        return self.get_filter_class()(
+            self.request.GET or None,
+            queryset=queryset or self.get_queryset(),
+            view=self
+        )
 
     def is_filtered(self):
         get = self.request.GET.copy()
