@@ -11,6 +11,10 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.options import get_content_type_for_model
 from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.contrib.auth import get_user_model, get_permission_codename
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
+from django.db.models.signals import post_migrate
 from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.encoding import force_text
@@ -49,6 +53,13 @@ class CustomAdmin(six.with_metaclass(
 
     use_permission = True
 
+    permissions = {
+        'change': None,
+        'add': None,
+        'delete': None,
+        'view': None,
+    }
+
     template_name = 'admin/custom_view/custom_view.html'
 
     change_view = changelist_view = add_view = AdminTemplateView
@@ -67,7 +78,7 @@ class CustomAdmin(six.with_metaclass(
         return None
 
     @classmethod
-    def _registration_args(cls, app_config=None):
+    def _build_fake_model(cls, app_config=None):
         class Fake(object):
             pass
 
@@ -94,11 +105,38 @@ class CustomAdmin(six.with_metaclass(
         model._meta.abstract = False
         model._meta.swapped = False
         model._deferred = False
-        return (model,), cls
+        return model
+
+    @classmethod
+    def create_permissions(cls, model):
+        opts = model._meta
+        ctype = ContentType.objects.get_for_model(model, for_concrete_model=False)
+
+        for action, name in cls.permissions.items():
+            if name is None:
+                name = 'Can %s %s' % (action, opts.verbose_name)
+            perm, created = Permission.objects.get_or_create(
+                codename=get_permission_codename(action, opts),
+                content_type=ctype,
+                defaults=dict(name=name)
+            )
+            if not created and perm.name != name:
+                perm.name = name
+                perm.save(update_fields=['name'])
 
     @classmethod
     def register_at(cls, admin_site, app_config=None):
-        return admin_site.register(*cls._registration_args(app_config))
+        model = cls._build_fake_model(app_config)
+
+        def _create_permissions(*args, **kwargs):
+            cls.create_permissions(model)
+
+        post_migrate.connect(
+            _create_permissions,
+            dispatch_uid=cls.__module__ + '.' + cls.__name__ + '.create_permissions')
+
+        cls.create_permissions(model)
+        return admin_site.register([model], cls)
 
     @classmethod
     def check(cls, model=None):
