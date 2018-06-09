@@ -53,12 +53,13 @@ class CustomAdmin(six.with_metaclass(
 
     use_permission = True
 
-    permissions = {
+    default_permissions = {
         'change': None,
         'add': None,
         'delete': None,
         'view': None,
     }
+    permissions = None
 
     template_name = 'admin/custom_view/custom_view.html'
 
@@ -112,7 +113,10 @@ class CustomAdmin(six.with_metaclass(
         opts = model._meta
         ctype = ContentType.objects.get_for_model(model, for_concrete_model=False)
 
-        for action, name in cls.permissions.items():
+        permissions = dict(cls.default_permissions)
+        permissions.update(dict(cls.permissions or {}))
+
+        for action, name in permissions.items():
             if name is None:
                 name = 'Can %s %s' % (action, opts.verbose_name)
             perm, created = Permission.objects.get_or_create(
@@ -125,17 +129,18 @@ class CustomAdmin(six.with_metaclass(
                 perm.save(update_fields=['name'])
 
     @classmethod
+    def _create_permissions(cls, *args, **kwargs):
+        model = cls._build_fake_model()
+        cls.create_permissions(model)
+
+    @classmethod
     def register_at(cls, admin_site, app_config=None):
         model = cls._build_fake_model(app_config)
 
-        def _create_permissions(*args, **kwargs):
-            cls.create_permissions(model)
-
         post_migrate.connect(
-            _create_permissions,
+            cls._create_permissions,
             dispatch_uid=cls.__module__ + '.' + cls.__name__ + '.create_permissions')
 
-        cls.create_permissions(model)
         return admin_site.register([model], cls)
 
     @classmethod

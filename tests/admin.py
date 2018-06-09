@@ -15,6 +15,10 @@ class ReportOrderAdmin(CustomAdmin):
     verbose_name = 'Example admin'
     verbose_name_plural = verbose_name
 
+    permissions = {
+        'only_self': "Can view only self orders"
+    }
+
     add_view = change_view = changelist_view = ExampleView
 
     def get_title(self, obj):
