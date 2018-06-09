@@ -134,12 +134,14 @@ class CustomAdmin(six.with_metaclass(
         cls.create_permissions(model)
 
     @classmethod
-    def register_at(cls, admin_site, app_config=None):
-        model = cls._build_fake_model(app_config)
-
+    def connect_signals(cls):
         post_migrate.connect(
             cls._create_permissions,
             dispatch_uid=cls.__module__ + '.' + cls.__name__ + '.create_permissions')
+
+    @classmethod
+    def register_at(cls, admin_site, app_config=None):
+        model = cls._build_fake_model(app_config)
 
         return admin_site.register([model], cls)
 
