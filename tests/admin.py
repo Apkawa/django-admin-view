@@ -8,7 +8,7 @@ class ExampleView(AdminTemplateView):
     pass
 
 
-class ReportOrderAdmin(CustomAdmin):
+class ExampleAdmin(CustomAdmin):
     app_label = 'tests'
     module_name = 'example'
 
@@ -25,4 +25,4 @@ class ReportOrderAdmin(CustomAdmin):
         return "A Example admin"
 
 
-ReportOrderAdmin.register_at(admin.site)
+ExampleAdmin.register_at(admin.site)

@@ -75,7 +75,7 @@ class AdminViewMixin(PermissionShortcutAdminMixin):
     def has_delete_permission(self, request, obj):
         perm = self.delete_perm
         if perm is None:
-            perm = self.admin.has_delete_permission(request, obj),
+            perm = self.admin.has_delete_permission(request, obj)
         return perm
 
     def check_permission(self, request):
@@ -88,7 +88,7 @@ class AdminViewMixin(PermissionShortcutAdminMixin):
 
     def get_admin_context(self, **extra_context):
         admin = self.admin
-        obj = self.object
+        obj = getattr(self, 'object', None)
 
         self.request.current_app = admin.admin_site.name
 
@@ -102,6 +102,7 @@ class AdminViewMixin(PermissionShortcutAdminMixin):
             opts=admin.model._meta,
             app_label=self._get_admin_attr('app_label'),
             verbose_name=self._get_admin_attr('verbose_name'),
+            title=self._get_admin_attr('verbose_name'),
             save_as=False,
             save_on_top=False,
             is_popup=(IS_POPUP_VAR in self.request.POST or
@@ -123,6 +124,7 @@ class AdminViewMixin(PermissionShortcutAdminMixin):
             show_save=self.show_save,
             show_save_and_continue=self.show_save_and_continue,
             show_only_save=self.show_save,
+            view_type=self.view_type,
         )
         return context
 

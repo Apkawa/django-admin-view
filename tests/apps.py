@@ -9,3 +9,7 @@ except ImportError:
 class TestConfig(AppConfig):
     name = 'tests'
     label = 'tests'
+
+    def ready(self):
+        from .admin import ExampleAdmin
+        ExampleAdmin.connect_signals()

@@ -163,9 +163,13 @@ class CustomAdmin(six.with_metaclass(
         return True
 
     def has_add_permission(self, request):
+        if self.use_permission:
+            return self.has_user_permission(request, 'add')
         return False
 
     def has_delete_permission(self, request, obj=None):
+        if self.use_permission:
+            return self.has_user_permission(request, 'delete')
         return False
 
     def has_module_permission(self, request):

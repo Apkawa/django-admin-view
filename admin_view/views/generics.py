@@ -2,9 +2,27 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
 from django.utils.decorators import method_decorator
-from django.views.generic import DetailView, UpdateView
+from django.views.generic import DetailView, UpdateView, ListView
 
 from .base import AdminObjectView
+
+
+class AdminListView(AdminObjectView, ListView):
+    permission_name = 'view'
+
+    def get_context_data(self, **kwargs):
+        context = AdminObjectView.get_context_data(self, **kwargs)
+        context.update(ListView.get_context_data(self, **kwargs))
+        return context
+
+    def dispatch(self, request, object_id=None, form_url='', extra_context=None, **kwargs):
+        self.kwargs = {
+            'pk': object_id,
+            'form_url': form_url,
+            'extra_context': extra_context
+        }
+        self.kwargs.update(kwargs)
+        return super(AdminListView, self).dispatch(request, **self.kwargs)
 
 
 class AdminDetailView(AdminObjectView, DetailView):
@@ -77,8 +95,9 @@ class AdminChangeFormView(AdminUpdateView):
 
     def get_admin_context(self, **extra_context):
         context = AdminObjectView.get_admin_context(self, **extra_context)
-        context.update(
-            self.admin.get_extra_context(self.request, object_id=self.object and self.object.id))
+        if hasattr(self.admin, 'get_extra_context'):
+            context.update(
+                self.admin.get_extra_context(self.request, object_id=self.object and self.object.id))
         return context
 
     def get_object(self, queryset=None):

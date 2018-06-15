@@ -16,7 +16,5 @@ def admin_view_class(view_class, view_type='change', template_name=None):
                     view_class.as_view(admin=self, view_type=view_type, **view_kw))
                 setattr(func, '_view', None)
             return view(request, *args, **kwargs)
-
         return wrap
-
     return decorator

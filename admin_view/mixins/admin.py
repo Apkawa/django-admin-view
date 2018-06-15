@@ -6,7 +6,6 @@ from django.db import models
 from django.views import View
 
 
-
 class PermissionShortcutAdminMixin(object):
     opts = None
 
@@ -19,7 +18,6 @@ class PermissionShortcutAdminMixin(object):
 
     def has_user_permission(self, request, perm_name, obj=None):
         perm_name = self.get_permission_name(perm_name, obj)
-        # print self, perm_name
         return request.user.has_perm(perm_name)
 
     def has_user_negative_permission(self, request, perm_name, obj=None):
@@ -47,7 +45,7 @@ class ClassViewAdminMixin(object):
                 r'^add/$', getattr(self, 'add_view', None)
             ],
             'change': [
-                r'^(.+)/$', getattr(self, 'change_view', None)
+                r'^([^/]+)/$', getattr(self, 'change_view', None)
 
             ],
             'changelist': [
@@ -55,11 +53,11 @@ class ClassViewAdminMixin(object):
 
             ],
             'delete': [
-                r'^(.+)/delete/$', getattr(self, 'delete_view', None)
+                r'^([^/]+)/delete/$', getattr(self, 'delete_view', None)
 
             ],
             'history': [
-                r'^(.+)/history/$', getattr(self, 'history_view', None)
+                r'^([^/]+)/history/$', getattr(self, 'history_view', None)
             ],
         }
         return views
@@ -115,5 +113,3 @@ class ClassViewAdminMixin(object):
         return self.get_urls()
 
     urls = property(_get_urls)
-
-
