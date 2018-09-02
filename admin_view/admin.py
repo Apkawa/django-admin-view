@@ -156,14 +156,12 @@ class CustomAdmin(six.with_metaclass(
         return forms.Media(js=[static('admin/js/%s' % url) for url in js])
 
 
-class ModelViewAdminMixin(ClassViewAdminMixin,
-                          PermissionShortcutAdminMixin,
-                          BaseDjangoObjectActions,
-                          FakeModelAdminMixin):
-    pass
+class ModelViewAdminMixin(
+    ClassViewAdminMixin,
+    PermissionShortcutAdminMixin,
+    BaseDjangoObjectActions,
+    FakeModelAdminMixin):
 
-
-class ModelViewAdmin(ModelViewAdminMixin, admin.ModelAdmin):
     formfield_overrides = {
         ThumbnailerField: {'widget': ImageClearableFileInput},
     }
@@ -192,7 +190,7 @@ class ModelViewAdmin(ModelViewAdminMixin, admin.ModelAdmin):
     def has_readonly_permission(self, request, obj=None):
         if '_readonly' in request.GET:
             return True
-        return (not super(ModelViewAdmin, self).has_change_permission(request, obj)
+        return (not super(ModelViewAdminMixin, self).has_change_permission(request, obj)
                 and self.has_view_permission(request, obj))
 
     def has_view_permission(self, request, obj=None):
@@ -202,25 +200,25 @@ class ModelViewAdmin(ModelViewAdminMixin, admin.ModelAdmin):
         return False
 
     def has_change_permission(self, request, obj=None):
-        change_perm = super(ModelViewAdmin, self).has_change_permission(request, obj)
+        change_perm = super(ModelViewAdminMixin, self).has_change_permission(request, obj)
         if not change_perm:
             return self.has_view_permission(request, obj)
         return change_perm
 
     def get_model_perms(self, request):
-        perms = super(ModelViewAdmin, self).get_model_perms(request)
+        perms = super(ModelViewAdminMixin, self).get_model_perms(request)
         perms['readonly'] = self.has_readonly_permission(request)
         perms['view'] = self.has_view_permission(request)
         perms['change'] = perms['change'] or perms['view']
         return perms
 
     def get_urls(self):
-        urlpatterns = super(ModelViewAdmin, self).get_urls()
+        urlpatterns = super(ModelViewAdminMixin, self).get_urls()
         return self._get_action_urls() + urlpatterns
 
     def get_info(self, model=None):
-        model = model or self.model
-        return model._meta.app_label, self.model._meta.model_name
+        info = super().get_info()
+        return info
 
     _info = property(get_info)
 
@@ -228,12 +226,12 @@ class ModelViewAdmin(ModelViewAdminMixin, admin.ModelAdmin):
         return self.admin_site.name
 
     def _reverse(self, name, *args, **kwargs):
-        name = ("%s_%s_" % self.get_info(kwargs.pop('model', None))) + name
+        name = ("%s_%s_" % self.get_info()) + name
         return reverse("%s:%s" % (self._site_namespace(), name), args=args, kwargs=kwargs)
 
     def get_fieldsets(self, request, obj=None):
         if not getattr(self, 'trans_opts', None):
-            return super(ModelViewAdmin, self).get_fieldsets(request, obj)
+            return super(ModelViewAdminMixin, self).get_fieldsets(request, obj)
         fieldsets = self.fieldsets
         if not fieldsets:
             fieldsets = [(None, {'fields': self.get_fields(request, obj)})]
@@ -295,14 +293,14 @@ class ModelViewAdmin(ModelViewAdminMixin, admin.ModelAdmin):
         return helper
 
     def get_form(self, request, obj=None, **kwargs):
-        ModelForm = super(ModelViewAdmin, self).get_form(request, obj, **kwargs)
+        ModelForm = super(ModelViewAdminMixin, self).get_form(request, obj, **kwargs)
         # fieldset = self.get_fieldsets(request, obj)
         # ModelForm.helper = self.get_crispy_helper(ModelForm, fieldset)
         return ModelForm
 
     def formfield_for_manytomany(self, db_field, request=None, **kwargs):
         kwargs['widget'] = FilteredSelectMultiple(db_field.verbose_name, is_stacked=False)
-        return super(ModelViewAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
+        return super(ModelViewAdminMixin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
     def get_title(self, obj=None):
         add = not obj
@@ -335,12 +333,17 @@ class ModelViewAdmin(ModelViewAdminMixin, admin.ModelAdmin):
         return context
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
-        return super(ModelViewAdmin, self).change_view(request, object_id, form_url,
+        return super(ModelViewAdminMixin, self).change_view(request, object_id, form_url,
                                                        extra_context=extra_context)
 
     def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
         extra_context = self.get_extra_context(request,
                                                object_id=object_id, form_url='',
                                                extra_context=extra_context)
-        return super(ModelViewAdmin, self).changeform_view(request, object_id, form_url,
+        return super(ModelViewAdminMixin, self).changeform_view(request, object_id, form_url,
                                                            extra_context)
+
+
+class ModelViewAdmin(ModelViewAdminMixin,
+                     admin.ModelAdmin):
+    pass

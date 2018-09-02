@@ -67,7 +67,9 @@ class ClassViewAdminMixin(object):
         return views
 
     def get_info(self):
-        return (self.model._meta.app_label, self.model._meta.model_name)
+        app_label = getattr(self, 'app_label', self.model._meta.app_label)
+        module_name = getattr(self, 'module_name', self.model._meta.model_name)
+        return (app_label, module_name)
 
     def build_url(self, pattern, view, name=None):
         if name:

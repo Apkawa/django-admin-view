@@ -38,6 +38,8 @@ class ExampleCloneAdmin(ModelViewAdmin):
     model = ExampleModel
     app_label = 'tests'
     module_name = 'example_model_clone'
+    list_display = ['title']
+    list_display_links = ['title']
 
     view_classes = {
         'add': AdminTemplateView

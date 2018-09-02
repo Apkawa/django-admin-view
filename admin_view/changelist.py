@@ -1,4 +1,6 @@
+from django.contrib.admin.utils import quote
 from django.contrib.admin.views.main import ChangeList
+from django.urls import reverse
 
 
 class PerPageChangeList(ChangeList):
@@ -28,6 +30,11 @@ class PerPageChangeList(ChangeList):
         return params
 
     def per_page_links(self):
-
         return [(per_page, self.get_query_string({self.per_page_param_name: per_page}))
                 for per_page in self.per_page_choices]
+
+    def url_for_result(self, result):
+        pk = getattr(result, self.pk_attname)
+        return reverse('admin:%s_%s_change' % (self.model_admin.get_info()),
+                       args=(quote(pk),),
+                       current_app=self.model_admin.admin_site.name)
