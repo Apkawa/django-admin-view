@@ -25,7 +25,7 @@ class AdminObjectView(AdminViewMixin):
 
 
 class AdminTemplateView(AdminViewMixin, TemplateView):
-    template_name = None
+    template_name = 'admin/custom_view/custom_view.html'
 
 
 class AdminFormView(AdminViewMixin, FormView):

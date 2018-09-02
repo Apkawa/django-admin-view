@@ -25,7 +25,7 @@ pip install -e git+https://githib.com/Apkawa/django-admin-view.git#egg=django-ad
 * python-2.7 - django>=1.8,<=1.11
 * python-3.4 - django>=1.8,<=1.11
 * python-3.5 - django>=1.8,<=1.11
-* python-3.6 - django>=1.11
+* python-3.6 - django>=1.11,<2.0
 
 
 # Usage

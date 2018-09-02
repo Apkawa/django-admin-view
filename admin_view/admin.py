@@ -25,7 +25,9 @@ from easy_thumbnails.widgets import ImageClearableFileInput
 from modeltranslation.utils import get_translation_fields
 
 from admin_view.mixins.admin import (
-    ClassViewAdminMixin, PermissionShortcutAdminMixin
+    ClassViewAdminMixin,
+    PermissionShortcutAdminMixin,
+    FakeModelAdminMixin
 )
 from .changelist import PerPageChangeList
 from .views.base import AdminTemplateView
@@ -40,6 +42,7 @@ class CustomAdmin(six.with_metaclass(
     forms.MediaDefiningClass,
     PermissionShortcutAdminMixin,
     ClassViewAdminMixin,
+    FakeModelAdminMixin
 )):
     fields = fieldsets = exclude = ()
     date_hierarchy = ordering = None
@@ -77,77 +80,6 @@ class CustomAdmin(six.with_metaclass(
 
     def get_view_on_site_url(self, obj):
         return None
-
-    @classmethod
-    def _build_fake_model(cls, app_config=None):
-        class Fake(object):
-            pass
-
-        model = Fake()
-        model._meta = Fake()
-        model._meta.app_label = cls.app_label
-        model.__name__ = cls.module_name
-        model._meta.module_name = cls.module_name
-
-        model._meta.model_name = cls.module_name
-        model._meta.object_name = cls.module_name.capitalize()
-
-        model._meta.verbose_name = cls.verbose_name
-        model._meta.verbose_name_plural = cls.verbose_name_plural
-
-        if app_config is None:
-            # Try get app config
-            app_config = cls.__module__.split('.')[-2]
-
-        if isinstance(app_config, six.string_types):
-            app_config = apps.get_app_config(app_config)
-        model._meta.app_config = app_config
-
-        model._meta.abstract = False
-        model._meta.swapped = False
-        model._deferred = False
-        return model
-
-    @classmethod
-    def create_permissions(cls, model):
-        opts = model._meta
-        ctype = ContentType.objects.get_for_model(model, for_concrete_model=False)
-
-        permissions = dict(cls.default_permissions)
-        permissions.update(dict(cls.permissions or {}))
-
-        for action, name in permissions.items():
-            if name is None:
-                name = 'Can %s %s' % (action, opts.verbose_name)
-            perm, created = Permission.objects.get_or_create(
-                codename=get_permission_codename(action, opts),
-                content_type=ctype,
-                defaults=dict(name=name)
-            )
-            if not created and perm.name != name:
-                perm.name = name
-                perm.save(update_fields=['name'])
-
-    @classmethod
-    def _create_permissions(cls, *args, **kwargs):
-        model = cls._build_fake_model()
-        cls.create_permissions(model)
-
-    @classmethod
-    def connect_signals(cls):
-        post_migrate.connect(
-            cls._create_permissions,
-            dispatch_uid=cls.__module__ + '.' + cls.__name__ + '.create_permissions')
-
-    @classmethod
-    def register_at(cls, admin_site, app_config=None):
-        model = cls._build_fake_model(app_config)
-
-        return admin_site.register([model], cls)
-
-    @classmethod
-    def check(cls, model=None):
-        return []
 
     def has_change_permission(self, request, obj=None):
         if self.use_permission:
@@ -224,13 +156,14 @@ class CustomAdmin(six.with_metaclass(
         return forms.Media(js=[static('admin/js/%s' % url) for url in js])
 
 
-class ModelViewAdmin(ClassViewAdminMixin,
-                     PermissionShortcutAdminMixin,
-                     BaseDjangoObjectActions,
-                     admin.ModelAdmin):
-    # formfield_overrides = {
-    #     models.ManyToManyField: {'widget': FilteredSelectMultiple("verbose name", is_stacked=False)},
-    # }
+class ModelViewAdminMixin(ClassViewAdminMixin,
+                          PermissionShortcutAdminMixin,
+                          BaseDjangoObjectActions,
+                          FakeModelAdminMixin):
+    pass
+
+
+class ModelViewAdmin(ModelViewAdminMixin, admin.ModelAdmin):
     formfield_overrides = {
         ThumbnailerField: {'widget': ImageClearableFileInput},
     }
@@ -396,8 +329,9 @@ class ModelViewAdmin(ClassViewAdminMixin,
         context['has_view_permission'] = self.has_view_permission(request, obj)
         context['has_readonly_permission'] = self.has_readonly_permission(request, obj)
 
-        context.update(BaseDjangoObjectActions._get_change_context(self, request, object_id,
-                                                                   form_url=form_url))
+        # TODO FIXME
+        # context.update(BaseDjangoObjectActions._get_change_context(self, request, object_id,
+        #                                                            form_url=form_url))
         return context
 
     def change_view(self, request, object_id, form_url='', extra_context=None):

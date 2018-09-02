@@ -1,10 +1,14 @@
 import os
+import sys
 
 DEBUG = True
 
 SITE_ID = 1
 
 TEST_ROOT = os.path.normcase(os.path.dirname(os.path.abspath(__file__)))
+
+sys.path.insert(0, os.path.abspath(os.path.join(TEST_ROOT, '..', '..')))
+
 FIXTURES_ROOT = os.path.join(TEST_ROOT, 'fixtures')
 
 MEDIA_ROOT = os.path.join('/tmp/', 'media')
@@ -70,6 +74,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
 )
 
 # This is only needed for the 1.4.X test environment

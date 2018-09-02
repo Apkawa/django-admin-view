@@ -11,5 +11,5 @@ class TestConfig(AppConfig):
     label = 'tests'
 
     def ready(self):
-        from .admin import ExampleAdmin
-        ExampleAdmin.connect_signals()
+        from .admin import CustomExampleAdmin
+        CustomExampleAdmin.connect_signals()
