@@ -1,25 +1,10 @@
-# coding: utf-8
 # !/usr/bin/env python
 import os
-from setuptools import setup, find_packages
-
-import os
-import re
 import sys
 
+from setuptools import setup, find_packages
 
-def get_version(*file_paths):
-    """Retrieves the version from admin_view/__init__.py"""
-    filename = os.path.join(os.path.dirname(__file__), *file_paths)
-    version_file = open(filename).read()
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
-                              version_file, re.M)
-    if version_match:
-        return version_match.group(1)
-    raise RuntimeError('Unable to find version string.')
-
-
-version = get_version("admin_view", "__init__.py")
+version = '0.0.1'
 
 if sys.argv[-1] == 'publish':
     try:
@@ -29,14 +14,9 @@ if sys.argv[-1] == 'publish':
     except ImportError:
         print('Wheel library missing. Please run "pip install wheel"')
         sys.exit()
-    os.system('python setup.py sdist upload')
-    os.system('python setup.py bdist_wheel upload')
-    sys.exit()
-
-if sys.argv[-1] == 'tag':
-    print("Tagging the version on git:")
-    os.system("git tag -a %s -m 'version %s'" % (version, version))
-    os.system("git push --tags")
+    os.system('rm -rf dist/')
+    os.system('python setup.py sdist bdist_wheel')
+    os.system('twine upload dist/*')
     sys.exit()
 
 if sys.argv[1] == 'bumpversion':
@@ -46,11 +26,10 @@ if sys.argv[1] == 'bumpversion':
     except IndexError:
         part = 'patch'
 
-    os.system("bumpversion --no-tag --config-file setup.cfg %s" % part)
-    os.system("git push --tags")
+    os.system("bumpversion --config-file setup.cfg %s" % part)
     sys.exit()
 
-__doc__ = """Helps create custom admin view"""
+__doc__ = ""
 
 project_name = 'django-admin-view'
 app_name = 'admin_view'
@@ -68,11 +47,17 @@ setup(
     description=__doc__,
     long_description=read('README.md'),
     long_description_content_type='text/markdown',
-    url="https://githib.com/Apkawa/django-admin-view",
+    url="https://github.com/Apkawa/%s" % project_name,
     author="Apkawa",
     author_email='apkawa@gmail.com',
     packages=[package for package in find_packages() if package.startswith(app_name)],
-    install_requires=['six'],
+    install_requires=[
+        'six',
+        'Django>=1.8,<3.1',
+        'django-filter',
+        # For report view
+        'tablib',
+    ],
     zip_safe=False,
     include_package_data=True,
     keywords=['django'],
@@ -81,10 +66,11 @@ setup(
         'Development Status :: 3 - Alpha',
         'Framework :: Django',
         'Framework :: Django :: 1.8',
-        'Framework :: Django :: 1.9',
-        'Framework :: Django :: 1.10',
         'Framework :: Django :: 1.11',
         'Framework :: Django :: 2.0',
+        'Framework :: Django :: 2.1',
+        'Framework :: Django :: 2.2',
+        'Framework :: Django :: 3.0',
         'Intended Audience :: Developers',
         'Environment :: Web Environment',
         'License :: OSI Approved :: MIT License',
@@ -96,5 +82,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ],
 )

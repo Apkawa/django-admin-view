@@ -1,11 +1,11 @@
+[![PyPi](https://img.shields.io/pypi/v/django-admin-view.svg)](https://pypi.python.org/pypi/django-admin-view)
 [![Build Status](https://travis-ci.org/Apkawa/django-admin-view.svg?branch=master)](https://travis-ci.org/Apkawa/django-admin-view)
-[![Coverage Status](https://coveralls.io/repos/github/Apkawa/django-admin-view/badge.svg)](https://coveralls.io/github/Apkawa/django-admin-view)
 [![codecov](https://codecov.io/gh/Apkawa/django-admin-view/branch/master/graph/badge.svg)](https://codecov.io/gh/Apkawa/django-admin-view)
 [![Requirements Status](https://requires.io/github/Apkawa/django-admin-view/requirements.svg?branch=master)](https://requires.io/github/Apkawa/django-admin-view/requirements/?branch=master)
 [![PyUP](https://pyup.io/repos/github/Apkawa/django-admin-view/shield.svg)](https://pyup.io/repos/github/Apkawa/django-admin-view)
-[![PyPI](https://img.shields.io/pypi/pyversions/django-admin-view.svg)]()
+[![PyPI](https://img.shields.io/pypi/pyversions/django-admin-view.svg)](https://pypi.python.org/pypi/django-admin-view)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Project for merging different file types, as example easy thumbnail image and unpacking archive in one field
 
 # Installation
 
@@ -22,11 +22,13 @@ pip install -e git+https://githib.com/Apkawa/django-admin-view.git#egg=django-ad
 
 ## Django and python version
 
-* python-2.7 - django>=1.8,<=1.11
-* python-3.4 - django>=1.8,<=1.11
-* python-3.5 - django>=1.8,<=1.11
-* python-3.6 - django>=1.11,<2.0
 
+| Python<br/>Django | 3.5 | 3.6 | 3.7 | 3.8 |
+|:-----------------:|-----|-----|-----|-----|
+| 1.8               |  ✘  |  ✘  |  ✘  |  ✘  |
+| 1.11              |  ✔  |  ✔  |  ✔  |  ✘  |
+| 2.2               |  ✔  |  ✔  |  ✔  |  ✔  |
+| 3.0               |  ✘  |  ✔  |  ✔  |  ✔  |
 
 # Usage
 
@@ -37,7 +39,7 @@ pip install -e git+https://githib.com/Apkawa/django-admin-view.git#egg=django-ad
 ## run example app
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ./test/manage.py migrate
 ./test/manage.py runserver
 ```
@@ -45,15 +47,21 @@ pip install -r requirements.txt
 ## run tests
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 pytest
 tox
+```
+
+## Update version
+
+```bash
+python setup.py bumpversion
 ```
 
 ## publish pypi
 
 ```bash
-python setup.py sdist upload -r pypi
+python setup.py publish
 ```
 
 

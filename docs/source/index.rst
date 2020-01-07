@@ -4,7 +4,8 @@ django-admin-view documentation!
 .. toctree::
    :maxdepth: 3
    :caption:
-      example.rst
+      readme
+      example
 
 
 Indices and tables

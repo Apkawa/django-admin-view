@@ -6,23 +6,14 @@ import itertools
 
 import six
 from django import forms
-from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.options import get_content_type_for_model
 from django.contrib.admin.widgets import FilteredSelectMultiple
-from django.contrib.auth import get_user_model, get_permission_codename
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
-from django.db.models.signals import post_migrate
 from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext as _
-from django_object_actions import BaseDjangoObjectActions
-from easy_thumbnails.fields import ThumbnailerField
-from easy_thumbnails.widgets import ImageClearableFileInput
-from modeltranslation.utils import get_translation_fields
 
 from admin_view.mixins.admin import (
     ClassViewAdminMixin,
@@ -36,6 +27,22 @@ try:
     from pymorphy2 import MorphAnalyzer
 except ImportError:
     MorphAnalyzer = None
+
+try:
+    from django_object_actions import BaseDjangoObjectActions
+except ImportError:
+    class BaseDjangoObjectActions:
+        pass
+
+FORM_FIELD_OVERRIDES = {}
+
+try:
+    from easy_thumbnails.fields import ThumbnailerField
+    from easy_thumbnails.widgets import ImageClearableFileInput
+
+    FORM_FIELD_OVERRIDES[ThumbnailerField] = {'widget': ImageClearableFileInput}
+except ImportError:
+    pass
 
 
 class CustomAdmin(six.with_metaclass(
@@ -161,10 +168,7 @@ class ModelViewAdminMixin(
     PermissionShortcutAdminMixin,
     BaseDjangoObjectActions,
     FakeModelAdminMixin):
-
-    formfield_overrides = {
-        ThumbnailerField: {'widget': ImageClearableFileInput},
-    }
+    formfield_overrides = FORM_FIELD_OVERRIDES
 
     change_actions = []
     readonly_view_template = None
@@ -229,6 +233,16 @@ class ModelViewAdminMixin(
         name = ("%s_%s_" % self.get_info()) + name
         return reverse("%s:%s" % (self._site_namespace(), name), args=args, kwargs=kwargs)
 
+    def _get_translation_fields_map(self):
+        try:
+            from modeltranslation.utils import get_translation_fields
+        except ImportError:
+            return {}
+        return {
+            f: tuple(get_translation_fields(f))
+            for f in self.trans_opts.fields
+        }
+
     def get_fieldsets(self, request, obj=None):
         if not getattr(self, 'trans_opts', None):
             return super(ModelViewAdminMixin, self).get_fieldsets(request, obj)
@@ -237,10 +251,7 @@ class ModelViewAdminMixin(
             fieldsets = [(None, {'fields': self.get_fields(request, obj)})]
         else:
             fieldsets = copy.deepcopy(list(fieldsets))
-
-        translation_fields_map = {f: tuple(get_translation_fields(f))
-                                  for f in self.trans_opts.fields
-                                  }
+        translation_fields_map = self._get_translation_fields_map()
         for i, (group, fields_info) in enumerate(fieldsets):
             fields = []
             for field in fields_info['fields']:
@@ -300,7 +311,8 @@ class ModelViewAdminMixin(
 
     def formfield_for_manytomany(self, db_field, request=None, **kwargs):
         kwargs['widget'] = FilteredSelectMultiple(db_field.verbose_name, is_stacked=False)
-        return super(ModelViewAdminMixin, self).formfield_for_manytomany(db_field, request, **kwargs)
+        return super(ModelViewAdminMixin, self).formfield_for_manytomany(db_field, request,
+                                                                         **kwargs)
 
     def get_title(self, obj=None):
         add = not obj
@@ -334,14 +346,14 @@ class ModelViewAdminMixin(
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         return super(ModelViewAdminMixin, self).change_view(request, object_id, form_url,
-                                                       extra_context=extra_context)
+                                                            extra_context=extra_context)
 
     def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
         extra_context = self.get_extra_context(request,
                                                object_id=object_id, form_url='',
                                                extra_context=extra_context)
         return super(ModelViewAdminMixin, self).changeform_view(request, object_id, form_url,
-                                                           extra_context)
+                                                                extra_context)
 
 
 class ModelViewAdmin(ModelViewAdminMixin,

@@ -1,5 +1,0 @@
-recommonmark
-Sphinx
-recommonmark
-alabaster
-

@@ -5,7 +5,7 @@ DEBUG = True
 
 SITE_ID = 1
 
-TEST_ROOT = os.path.normcase(os.path.dirname(os.path.abspath(__file__)))
+TEST_ROOT = os.path.normcase(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 sys.path.insert(0, os.path.abspath(os.path.join(TEST_ROOT, '..', '..')))
 
@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.staticfiles',
 
-    'easy_thumbnails',
+    # 'easy_thumbnails',
     'django_filters',
 
     'admin_view',

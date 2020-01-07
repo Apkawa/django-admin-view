@@ -1,5 +1,0 @@
--r requirements/package.txt
--r requirements/test.txt
-
-django>=1.11,<2
-pypandoc
